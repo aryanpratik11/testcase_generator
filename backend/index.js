@@ -11,10 +11,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: "10mb" }));
 
-// Gemini setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Generate summaries from code
 app.post("/api/generate", async (req, res) => {
   try {
     const { files, language } = req.body;
@@ -23,12 +21,10 @@ app.post("/api/generate", async (req, res) => {
       return res.status(400).json({ error: "No files provided" });
     }
 
-    // Combine all code into one big string
     const codeText = files
       .map((f) => `File: ${f.path}\n${f.content}`)
       .join("\n\n");
 
-    // AI prompt for summaries
     const prompt = `
 You are a software test case generator.  
 Analyze the following ${language} code and generate a JSON array of possible test case summaries.  
@@ -50,7 +46,6 @@ ${codeText}
 
     let textOutput = result.response.text().trim();
 
-    // Try parsing AI output into JSON array
     let summaries;
     try {
       textOutput = textOutput
@@ -59,10 +54,9 @@ ${codeText}
         .trim();
       summaries = JSON.parse(textOutput);
     } catch {
-      // Fallback: split by line
       summaries = textOutput
         .split("\n")
-        .map((s) => s.trim().replace(/^[-*]\s*/, "")) // remove bullets
+        .map((s) => s.trim().replace(/^[-*]\s*/, ""))
         .filter((s) => s && s !== "[" && s !== "]" && s !== ",");
     }
 
@@ -108,7 +102,6 @@ app.post("/api/create-pr", async (req, res) => {
 
     const branchName = "add-generated-tests";
 
-    // Step 1: Get default branch SHA
     const repoData = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: { Authorization: `token ${token}` }
     }).then(r => r.json());
@@ -121,7 +114,6 @@ app.post("/api/create-pr", async (req, res) => {
 
     const baseSha = branchData.object.sha;
 
-    // Step 2: Create new branch
     await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
       method: "POST",
       headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
@@ -131,7 +123,6 @@ app.post("/api/create-pr", async (req, res) => {
       })
     });
 
-    // Step 3: Create the file
     await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
       method: "PUT",
       headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
@@ -142,7 +133,6 @@ app.post("/api/create-pr", async (req, res) => {
       })
     });
 
-    // Step 4: Create PR
     const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
       method: "POST",
       headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
@@ -162,5 +152,5 @@ app.post("/api/create-pr", async (req, res) => {
 });
 
 app.listen(5000, () => {
-  console.log("✅ Backend running on http://localhost:5000");
+  console.log("Backend running on http://localhost:5000");
 });

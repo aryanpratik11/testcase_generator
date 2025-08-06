@@ -71,7 +71,6 @@ export default function App() {
         ? prev.filter((f) => f !== path)
         : [...prev, path];
 
-      // Auto-detect language
       if (newSelection.length > 0) {
         const extCounts = {};
         newSelection.forEach((file) => {
@@ -118,7 +117,6 @@ export default function App() {
 
     setIsLoading(prev => ({ ...prev, generating: true }));
     try {
-      // Fetch full contents of selected files
       const fileContents = await Promise.all(
         selectedFiles.map((path) =>
           fetchFileContent(parsed.owner, parsed.repo, path)
@@ -156,7 +154,6 @@ export default function App() {
     setIsLoading(prev => ({ ...prev, codeGen: true }));
 
     try {
-      // Get file contents for selected files
       const fileContents = await Promise.all(
         selectedFiles.map((path) =>
           fetchFileContent(parsed.owner, parsed.repo, path)
@@ -167,7 +164,6 @@ export default function App() {
         .map(f => `File: ${f.path}\n${f.content}`)
         .join("\n\n");
 
-      // Call backend to generate test code
       const res = await fetch("http://localhost:5000/api/generateCode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,7 +173,6 @@ export default function App() {
       const data = await res.json();
 
       if (data.code) {
-        // Create modal
         const modal = document.createElement("div");
         modal.className =
           "fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50";
@@ -202,18 +197,15 @@ export default function App() {
 
         document.body.appendChild(modal);
 
-        // Close modal
         modal.querySelector("#close-modal").addEventListener("click", () => {
           document.body.removeChild(modal);
         });
 
-        // Copy code
         modal.querySelector("#copy-code").addEventListener("click", () => {
           navigator.clipboard.writeText(data.code);
           alert("Code copied to clipboard!");
         });
 
-        // Create PR
         modal.querySelector("#create-pr").addEventListener("click", async () => {
           const token = prompt("Enter your GitHub Personal Access Token");
           if (!token) return;
@@ -266,7 +258,7 @@ export default function App() {
             Generate test cases directly from your GitHub repository
           </p>
         </header>
-        {/* Instructions */}
+
         <div className="mb-6 bg-gray-900 p-4 rounded border border-green-800">
           <h2 className="text-lg font-semibold text-green-400 mb-2">How to Use</h2>
           <ol className="list-decimal pl-6 space-y-2 text-green-300 text-sm">
@@ -281,7 +273,6 @@ export default function App() {
         </div>
 
 
-        {/* GitHub Repo Input */}
         <div className="mb-6">
           <div className="flex gap-3 mb-2">
             <input
@@ -314,7 +305,6 @@ export default function App() {
           </p>
         </div>
 
-        {/* File Selection */}
         {files.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
@@ -355,7 +345,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Language Detection */}
         {language && (
           <div className="mb-6 p-3 bg-gray-900 rounded border border-green-800 flex items-center gap-3">
             <div className="flex-1">
@@ -378,7 +367,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Generate Button */}
         <div className="mb-8 flex justify-end">
           <button
             onClick={handleGenerate}
@@ -399,7 +387,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* Results Section */}
         <div className="mb-12">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-xl font-semibold text-green-400">
@@ -420,8 +407,8 @@ export default function App() {
                     <div className="flex flex-col gap-3">
                       <p className="text-green-400">
                         {testCase
-                          .replace(/```(?:json|javascript)?/g, '') // remove code fences
-                          .replace(/^\[|\]$/g, '') // remove starting/ending square brackets if present
+                          .replace(/```(?:json|javascript)?/g, '')
+                          .replace(/^\[|\]$/g, '')
                           .trim()}
                       </p>
 
@@ -453,7 +440,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer */}
         <footer className="mt-8 pt-4 border-t border-green-800 text-center text-green-700 text-sm">
           <p>GitHub Test Case Generator • Aryan Pratik</p>
         </footer>

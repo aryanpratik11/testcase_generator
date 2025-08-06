@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -52,19 +53,111 @@ ${codeText}
     // Try parsing AI output into JSON array
     let summaries;
     try {
+      textOutput = textOutput
+        .replace(/```json/i, "")
+        .replace(/```/g, "")
+        .trim();
       summaries = JSON.parse(textOutput);
     } catch {
       // Fallback: split by line
       summaries = textOutput
         .split("\n")
-        .map((s) => s.trim().replace(/^-/, "").trim())
-        .filter(Boolean);
+        .map((s) => s.trim().replace(/^[-*]\s*/, "")) // remove bullets
+        .filter((s) => s && s !== "[" && s !== "]" && s !== ",");
     }
 
     res.json({ generatedCases: summaries });
   } catch (error) {
     console.error("Error generating test cases:", error);
     res.status(500).json({ error: "Failed to generate test cases" });
+  }
+});
+
+app.post("/api/generateCode", async (req, res) => {
+  try {
+    const { summary, language, codeContext } = req.body;
+    if (!summary || !language || !codeContext) {
+      return res.status(400).json({ error: "Missing required data" });
+    }
+
+    const prompt = `
+You are an expert software tester.  
+Given the following ${language} code and the test case summary: "${summary}",  
+generate the full **unit test code** in ${language}'s most common test framework  
+(JUnit for Java, PyTest for Python, Jest for JavaScript, NUnit for C#).  
+Do not include explanations — output only the complete test code.
+
+Code Context:
+${codeContext}
+`;
+
+    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash-latest" });
+    const result = await model.generateContent(prompt);
+    const code = result.response.text().trim();
+
+    res.json({ code });
+  } catch (error) {
+    console.error("Error generating full test case code:", error);
+    res.status(500).json({ error: "Failed to generate test case code" });
+  }
+});
+
+app.post("/api/create-pr", async (req, res) => {
+  try {
+    const { owner, repo, filePath, fileContent, token } = req.body;
+
+    const branchName = "add-generated-tests";
+
+    // Step 1: Get default branch SHA
+    const repoData = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { Authorization: `token ${token}` }
+    }).then(r => r.json());
+
+    const baseBranch = repoData.default_branch;
+
+    const branchData = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`, {
+      headers: { Authorization: `token ${token}` }
+    }).then(r => r.json());
+
+    const baseSha = branchData.object.sha;
+
+    // Step 2: Create new branch
+    await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+      method: "POST",
+      headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ref: `refs/heads/${branchName}`,
+        sha: baseSha
+      })
+    });
+
+    // Step 3: Create the file
+    await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+      method: "PUT",
+      headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Add generated test cases",
+        content: Buffer.from(fileContent).toString("base64"),
+        branch: branchName
+      })
+    });
+
+    // Step 4: Create PR
+    const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+      method: "POST",
+      headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Add generated test cases",
+        head: branchName,
+        base: baseBranch,
+        body: "This PR adds generated test cases from the Test Case Generator tool."
+      })
+    }).then(r => r.json());
+
+    res.json({ prUrl: pr.html_url });
+  } catch (err) {
+    console.error("Error creating PR:", err);
+    res.status(500).json({ error: "Failed to create PR" });
   }
 });
 

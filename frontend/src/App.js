@@ -123,7 +123,7 @@ export default function App() {
         )
       );
 
-      const res = await fetch("http://localhost:5000/api/generate", {
+      const res = await fetch("https://testcase-generator-backend-4js8.onrender.com/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ files: fileContents, language }),
@@ -164,7 +164,7 @@ export default function App() {
         .map(f => `File: ${f.path}\n${f.content}`)
         .join("\n\n");
 
-      const res = await fetch("http://localhost:5000/api/generateCode", {
+      const res = await fetch("https://testcase-generator-backend-4js8.onrender.com/api/generateCode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summary, language, codeContext }),
@@ -211,7 +211,7 @@ export default function App() {
           if (!token) return;
 
           try {
-            const res = await fetch("http://localhost:5000/api/create-pr", {
+            const res = await fetch("https://testcase-generator-backend-4js8.onrender.com/api/create-pr", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

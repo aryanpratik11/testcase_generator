@@ -8,7 +8,10 @@ import fetch from "node-fetch";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "https://testcase-generator-6npc.onrender.com/"
+}));
+
 app.use(bodyParser.json({ limit: "10mb" }));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);

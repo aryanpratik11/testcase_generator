@@ -268,7 +268,7 @@ export default function App() {
             <li>The platform will auto-detect the programming language based on your file selection.</li>
             <li>Click <span className="text-green-400 font-bold">"Generate Test Cases"</span> to get scenario summaries.</li>
             <li>From the summaries, choose one and click <span className="text-green-400 font-bold">"Generate Code"</span> to produce full test case code.</li>
-            <li>(Optional) Use the future <span className="text-green-400 font-bold">"Create PR"</span> button to push the test cases to GitHub.</li>
+            <li>Use the <span className="text-green-400 font-bold">"Create PR"</span> button to push the test cases to GitHub.</li>
           </ol>
         </div>
 

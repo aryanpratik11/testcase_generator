@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: "https://testcase-generator-6npc.onrender.com/"
+  origin: "https://testcase-generator-6npc.onrender.com"
 }));
 
 app.use(bodyParser.json({ limit: "10mb" }));

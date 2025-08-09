@@ -441,7 +441,23 @@ export default function App() {
         </div>
 
         <footer className="mt-8 pt-4 border-t border-green-800 text-center text-green-700 text-sm">
-          <p>GitHub Test Case Generator • Aryan Pratik</p>
+          <p>
+            <a
+              href="https://github.com/aryanpratik11/testcase_generator"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Test Case Generator
+            </a>
+            {"  •  "}
+            <a
+              href="https://github.com/aryanpratik11"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Aryan Pratik
+            </a>
+          </p>
         </footer>
       </div>
     </div>
